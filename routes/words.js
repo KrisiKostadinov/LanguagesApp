@@ -6,14 +6,21 @@ router.get('/', (req, res) => {
         res.render('dashboard', { words });
     });
 });
-router.get('/add', (req, res) => res.render('add'));
+router.get('/add', (req, res) => res.render('add', { error: null, word: null }));
 
 router.post('/add', async (req, res) => {
-    const { bulgarian, english } = req.body;
+    const bulgarian = req.body.bulgarian.trim();
+    const english = req.body.english.trim();
 
-    const word = await Word.create({
-        bulgarian,
-        english,
+    const word = await Word.findOne({ bulgarian, english });
+
+    if(word) {
+        res.render('add', { error: 'This word already exists!', word });
+    }
+
+    await Word.create({
+        bulgarian: bulgarian.trim(),
+        english: english.trim(),
     }).catch(err => {
         console.log(err.code);
         res.render('add', { error: err});
